@@ -4,7 +4,7 @@
 #include <cstdlib>
 
 class Framework {
-public:
+protected:
 	Framework();
 	virtual ~Framework();
 
@@ -13,10 +13,8 @@ public:
 	virtual int getY() const;
 	virtual int getX() const;
 
-	virtual void setRow(size_t row);
-	virtual void setCol(size_t col);
-	virtual void setY(int y);
-	virtual void setX(int x);
+	virtual void setSize(size_t row, size_t col);
+	virtual void setAxis(int y, int x);
 
 	virtual void update() = 0;
 	virtual void render() = 0;

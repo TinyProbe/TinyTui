@@ -1,21 +1,21 @@
 #ifndef TERMINAL_HPP_TINY_
 #define TERMINAL_HPP_TINY_
 
-#include <unordered_map>
-#include <string>
+#include <unordered_map>	// for scenes
+#include <string>			// for name
 
-#include "Framework.hpp"
-#include "Scene.hpp"
+#include "Framework.hpp"	// for inheritance
+#include "Scene.hpp"		// for scenes
 
 class Terminal : public Framework {
 public:
-	static Terminal& get();
+	static Terminal& getInstance();
 
-	virtual Scene* getFocus() const;
-	virtual void setFocus(const std::string& name);
-
-	virtual void addScene(const std::string& name, size_t row, size_t col, int y, int x);
+	virtual void addScene(const std::string& name);
 	virtual void delScene(const std::string& name);
+	virtual void setSceneSize(const std::string& name, size_t row, size_t col);
+	virtual void setSceneAxis(const std::string& name, int y, int x);
+	virtual void setFocus(const std::string& name);
 
 	virtual void update() override;
 	virtual void render() override;
@@ -24,13 +24,11 @@ private:
 	Terminal();
 	virtual ~Terminal();
 
-	virtual void setRow(size_t row) override;
-	virtual void setCol(size_t col) override;
-	virtual void setY(int y) override;
-	virtual void setX(int x) override;
+	virtual void setSize(size_t row, size_t col) override;
+	virtual void setAxis(int y, int x) override;
 
-	virtual void size_refresh() const;
-	virtual void axis_refresh() const;
+	virtual void refreshSize() const;
+	virtual void refreshAxis() const;
 
 private:
 	static Terminal *instance;

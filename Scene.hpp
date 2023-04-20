@@ -8,7 +8,7 @@
 using Sceneid = WINDOW *;
 
 class Scene : public Framework {
-public:
+	friend class Terminal;
 
 private:
 	Scene();
@@ -16,10 +16,8 @@ private:
 
 	virtual Sceneid getID() const;
 
-	virtual void setRow(size_t row) override;
-	virtual void setCol(size_t col) override;
-	virtual void setY(int y) override;
-	virtual void setX(int x) override;
+	virtual void setSize(size_t row, size_t col) override;
+	virtual void setAxis(int y, int x) override;
 
 	virtual void update() override;
 	virtual void render() override;
@@ -31,8 +29,6 @@ private:
 	static constexpr size_t MAX_X = 5000;
 
 	Sceneid id;
-
-	friend class Terminal;
 };
 
 #endif

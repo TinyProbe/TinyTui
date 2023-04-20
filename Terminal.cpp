@@ -1,45 +1,39 @@
-#include "Terminal.hpp"
-#include <ncurses.h>
+#include "Terminal.hpp"		// for declaration
+#include <ncurses.h>		// for many many things
 
 Terminal *Terminal::instance = nullptr;
-Terminal& Terminal::get() {
+
+Terminal& Terminal::getInstance() {
 	if (Terminal::instance == nullptr) {
 		Terminal::instance = new Terminal();
 	}
 	return *Terminal::instance;
 }
 
-Terminal::Terminal() :
-	Framework(),
-	focus()
-{
-	initscr();
-	curs_set(0);
-	noecho();
-	cbreak();
+void addScene(const std::string& name) {
+	if (scenes.find(name) != scenes.end())
+		throw std::runtime_error("already exist that scene.");
+	scenes[name];
 }
-Terminal::~Terminal() {
-	if (Terminal::instance) {
-		delete Terminal::instance;
-		Terminal::instance = nullptr;
-	}
-	endwin();
+void delScene(const std::string& name) {
+	if (scenes.find(name) == scenes.end())
+		throw std::runtime_error("doesn't exist that scene.");
+	scenes.erase(name);
 }
-
-Scene *Terminal::getFocus() const { return focus; }
-
-void Terminal::setFocus(const std::string& name) {
-	std::unordered_map<std::string, Scene>::iterator iter = scenes.find(name);
-	if (iter == scenes.end())
-		throw std::runtime_error("not exist scene like that.");
-	this->focus = &(iter->second);
+void setSceneSize(const std::string& name, size_t row, size_t col) {
+	if (scenes.find(name) == scenes.end())
+		throw std::runtime_error("doesn't exist that scene.");
+	scenes[name].setSize(row, col);
 }
-
-void Terminal::addScene(const std::string& name, size_t row, size_t col, int y, int x) {
-
+void setSceneAxis(const std::string& name, int y, int x) {
+	if (scenes.find(name) == scenes.end())
+		throw std::runtime_error("doesn't exist that scene.");
+	scenes[name].setAxis(y, x);
 }
-void Terminal::delScene(const std::string& name) {
-
+void setFocus(const std::string& name) {
+	if (scenes.find(name) == scenes.end())
+		throw std::runtime_error("doesn't exist that scene.");
+	focus = &scenes[name];
 }
 
 void Terminal::update() {
@@ -53,18 +47,44 @@ void Terminal::render() {
 	focus->render();
 }
 
-void Terminal::setRow(size_t row) { setRow(row), size_refresh(); }
-void Terminal::setCol(size_t col) { setCol(col), size_refresh(); }
-void Terminal::setY(int y) { setY(y), axis_refresh(); }
-void Terminal::setX(int x) { setX(x), axis_refresh(); }
+Terminal::Terminal() :
+	Framework(),
+	focus()
+{
+	initscr();
+	timeout(0);
+	curs_set(0);
+	noecho();
+	cbreak();
+	nonl();
+}
 
-void Terminal::size_refresh() const {
+Terminal::~Terminal() {
+	if (Terminal::instance) {
+		delete Terminal::instance;
+		Terminal::instance = nullptr;
+	}
+	endwin();
+}
+
+void Terminal::setSize(size_t row, size_t col) {
+	Framework::setRow(row);
+	Framework::setCol(col);
+	size_refresh();
+}
+void Terminal::setAxis(int y, int x) {
+	Framework::setY(y);
+	Framework::setX(x);
+	axis_refresh();
+}
+
+void Terminal::refreshSize() const {
 	std::string cmd = "printf '\e[8;";
 	cmd += std::to_string(getRow()) + ';';
 	cmd += std::to_string(getCol()) + "t'";
 	system(cmd.c_str());
 }
-void Terminal::axis_refresh() const {
+void Terminal::refreshAxis() const {
 	std::string cmd = "printf '\e[3;";
 	cmd += std::to_string(getX()) + ';';
 	cmd += std::to_string(getY()) + "t'";
