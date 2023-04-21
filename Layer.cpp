@@ -1,25 +1,32 @@
 #include "Layer.hpp"
 #include "Scene.hpp"
 
-Layer::Layer(Scene *dependence) :
+Layer::Layer() :
 	Framework(),
-	dependence(dependence),
-	id(subwin(dependence->getID(), 0, 0, 0, 0))
+	win(),
+	Prior()
 {}
 Layer::~Layer() {}
 
-void Layer::setRow(size_t row) {
-
+Prior Layer::getPriority() const {
+	return prior;
 }
-void Layer::setCol(size_t col) {
-
-}
-void Layer::setY(int y) {
-
-}
-void Layer::setX(int x) {
-
+void Layer::setPriority(Prior prior) {
+	this->prior = prior;
 }
 
-void Layer::update() {}
-void Layer::render() {}
+void Layer::setSize(size_t row, size_t col) {
+	Framework::setSize(row, col);
+	wresize(win, row, col);
+}
+void Layer::setAxis(int y, int x) {
+	Framework::setAxis(y, x);
+	wmove(win, y, x);
+}
+
+void Layer::update() {
+
+}
+void Layer::render(std::vector<std::string>& buffer) {
+
+}

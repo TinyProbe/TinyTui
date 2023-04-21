@@ -1,4 +1,6 @@
-#include "Framework.hpp"
+#include "Framework.hpp"	// for declare class
+
+int __current_key;
 
 Framework::Framework() :
 	row(),

@@ -2,39 +2,46 @@
 #define TERMINAL_HPP_TINY_
 
 #include <unordered_map>	// for scenes
-#include <string>			// for name
 
 #include "Framework.hpp"	// for inheritance
 #include "Scene.hpp"		// for scenes
+
+using SceneId = unsigned int;
 
 class Terminal : public Framework {
 public:
 	static Terminal& getInstance();
 
-	virtual void addScene(const std::string& name);
-	virtual void delScene(const std::string& name);
-	virtual void setSceneSize(const std::string& name, size_t row, size_t col);
-	virtual void setSceneAxis(const std::string& name, int y, int x);
-	virtual void setFocus(const std::string& name);
+	virtual void addScene(SceneId sid);
+	virtual void delScene(SceneId sid);
+	virtual void setSceneSize(SceneId sid, size_t row, size_t col);
+	virtual void setSceneAxis(SceneId sid, int y, int x);
+
+	virtual void setFocus(SceneId sid);
+
+	virtual void addLayer(SceneId sid, LayerId lid);
+	virtual void delLayer(LayerId sid, LayerId lid);
+	virtual void setLayerSize(SceneId sid, LayerId lid, size_t row, size_t col);
+	virtual void setLayerAxis(SceneId sid, LayerId lid, int y, int x);
 
 	virtual void update() override;
 	virtual void render() override;
 
 private:
 	Terminal();
+	Terminal(const Terminal& rhs) = delete;
 	virtual ~Terminal();
 
 	virtual void setSize(size_t row, size_t col) override;
 	virtual void setAxis(int y, int x) override;
-
 	virtual void refreshSize() const;
 	virtual void refreshAxis() const;
 
 private:
 	static Terminal *instance;
 
-	std::unordered_map<std::string, Scene> scenes;
-	Scene* focus;
+	std::unordered_map<SceneId, Scene> scenes;
+	SceneId focus;
 };
 
 #endif

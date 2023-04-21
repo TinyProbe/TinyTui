@@ -1,35 +1,35 @@
 #ifndef LAYER_HPP_TINY_
 #define LAYER_HPP_TINY_
 
-#include <ncurses.h>
+#include <ncurses.h>		// for id
+#include <vector>			// for buffer
+#include <string>			// for buffer
 
-#include "Framework.hpp"
+#include "Framework.hpp"	// for inheritance
 
-using Layerid = WINDOW *;
+using Prior = unsigned int;
 
-class Scene;
 class Layer : public Framework {
-public:
+	friend class Scene;
 
 private:
-	Layer() = delete;
+	Layer();
 	Layer(const Layer& rhs) = delete;
-	Layer(Scene *dependence);
 	virtual ~Layer();
 
-	virtual void setRow(size_t row) override;
-	virtual void setCol(size_t col) override;
-	virtual void setY(int y) override;
-	virtual void setX(int x) override;
+	virtual Prior getPriority() const;
+	virtual void setPriority(Prior prior);
+
+	virtual void setSize(size_t row, size_t col) override;
+	virtual void setAxis(int y, int x) override;
 
 	virtual void update() override;
-	virtual void render() override;
+	virtual void render(std::vector<std::string>& buffer) override;
 
 private:
-	Scene *dependence;
-	Layerid id;
+	WINDOW *win;
+	Prior prior;
 
-	friend class Scene;
 };
 
 #endif

@@ -1,8 +1,7 @@
-#include "Terminal.hpp"		// for declaration
+#include "Terminal.hpp"		// for declare class
 #include <ncurses.h>		// for many many things
 
 Terminal *Terminal::instance = nullptr;
-
 Terminal& Terminal::getInstance() {
 	if (Terminal::instance == nullptr) {
 		Terminal::instance = new Terminal();
@@ -10,46 +9,83 @@ Terminal& Terminal::getInstance() {
 	return *Terminal::instance;
 }
 
-void addScene(const std::string& name) {
-	if (scenes.find(name) != scenes.end())
+void Terminal::addScene(SceneId sid) {
+	if (scenes.find(sid) != scenes.end())
 		throw std::runtime_error("already exist that scene.");
-	scenes[name];
+	scenes[sid];
 }
-void delScene(const std::string& name) {
-	if (scenes.find(name) == scenes.end())
+void Terminal::delScene(SceneId sid) {
+	std::unordered_map<SceneId, Scene>::iterator iter = scenes.find(sid);
+	if (iter == scenes.end())
 		throw std::runtime_error("doesn't exist that scene.");
-	scenes.erase(name);
+	if (focus == sid)
+		throw std::runtime_error("the focused scene cannot be removed.");
+	scenes.erase(iter);
 }
-void setSceneSize(const std::string& name, size_t row, size_t col) {
-	if (scenes.find(name) == scenes.end())
+void Terminal::setSceneSize(SceneId sid, size_t row, size_t col) {
+	std::unordered_map<SceneId, Scene>::iterator iter = scenes.find(sid);
+	if (iter == scenes.end())
 		throw std::runtime_error("doesn't exist that scene.");
-	scenes[name].setSize(row, col);
+	iter->second.setSize(row, col);
+	if (sid == focus)
+		setSize(row, col);
 }
-void setSceneAxis(const std::string& name, int y, int x) {
-	if (scenes.find(name) == scenes.end())
+void Terminal::setSceneAxis(SceneId sid, int y, int x) {
+	std::unordered_map<SceneId, Scene>::iterator iter = scenes.find(sid);
+	if (iter == scenes.end())
 		throw std::runtime_error("doesn't exist that scene.");
-	scenes[name].setAxis(y, x);
+	iter->second.setAxis(y, x);
+	if (sid == focus)
+		setAxis(y, x);
 }
-void setFocus(const std::string& name) {
-	if (scenes.find(name) == scenes.end())
+void Terminal::setFocus(SceneId sid) {
+	std::unordered_map<SceneId, Scene>::iterator iter = scenes.find(sid);
+	if (iter == scenes.end())
 		throw std::runtime_error("doesn't exist that scene.");
-	focus = &scenes[name];
+	focus = sid;
+	setSize(iter->second.getRow(), iter->second.getCol());
+	setAxis(iter->second.getY(), iter->second.getX());
+}
+
+void Terminal::addLayer(SceneId sid, LayerId lid) {
+	std::unordered_map<SceneId, Scene>::iterator iter = scenes.find(sid);
+	if (iter == scenes.end())
+		throw std::runtime_error("doesn't exist that scene.");
+	iter->second.addLayer(lid);
+}
+void Terminal::delLayer(SceneId sid, LayerId lid) {
+	std::unordered_map<SceneId, Scene>::iterator iter = scenes.find(sid);
+	if (iter == scenes.end())
+		throw std::runtime_error("doesn't exist that scene.");
+	iter->second.delLayer(lid);
+}
+void Terminal::setLayerSize(SceneId sid, LayerId lid, size_t row, size_t col) {
+	std::unordered_map<SceneId, Scene>::iterator iter = scenes.find(sid);
+	if (iter == scenes.end())
+		throw std::runtime_error("doesn't exist that scene.");
+	iter->second.setLayerSize(lid, row, col);
+}
+void Terminal::setLayerAxis(SceneId sid, LayerId lid, int y, int x) {
+	std::unordered_map<SceneId, Scene>::iterator iter = scenes.find(sid);
+	if (iter == scenes.end())
+		throw std::runtime_error("doesn't exist that scene.");
+	iter->second.setLayerAxis(lid, y, x);
 }
 
 void Terminal::update() {
-	if (focus == nullptr)
+	if (focus == -1)
 		throw std::runtime_error("not focused any scene.");
-	focus->update();
+	scenes[focus].update();
 }
 void Terminal::render() {
-	if (focus == nullptr)
+	if (focus == -1)
 		throw std::runtime_error("not focused any scene.");
-	focus->render();
+	scenes[focus].render();
 }
 
 Terminal::Terminal() :
 	Framework(),
-	focus()
+	focus(-1)
 {
 	initscr();
 	timeout(0);
@@ -68,16 +104,13 @@ Terminal::~Terminal() {
 }
 
 void Terminal::setSize(size_t row, size_t col) {
-	Framework::setRow(row);
-	Framework::setCol(col);
+	Framework::setSize(row, col);
 	size_refresh();
 }
 void Terminal::setAxis(int y, int x) {
-	Framework::setY(y);
-	Framework::setX(x);
+	Framework::setAxis(y, x);
 	axis_refresh();
 }
-
 void Terminal::refreshSize() const {
 	std::string cmd = "printf '\e[8;";
 	cmd += std::to_string(getRow()) + ';';

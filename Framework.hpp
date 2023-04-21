@@ -1,7 +1,7 @@
 #ifndef FRAMEWORK_HPP_TINY_
 #define FRAMEWORK_HPP_TINY_
 
-#include <cstdlib>
+#include <stddef.h>		// for size_t
 
 class Framework {
 protected:
@@ -24,7 +24,8 @@ private:
 	size_t col;
 	int y;
 	int x;
-
 };
+
+extern int __current_key;
 
 #endif

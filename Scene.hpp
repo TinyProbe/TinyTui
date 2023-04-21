@@ -1,21 +1,27 @@
 #ifndef SCENE_HPP_TINY_
 #define SCENE_HPP_TINY_
 
-#include <ncurses.h>
+#include <ncurses.h>		// for win
+#include <vector>			// for buffer
+#include <string>			// for buffer
+#include <unordered_map>	// for layers
 
-#include "Framework.hpp"
+#include "Framework.hpp"	// for inheritance
 
-using Sceneid = WINDOW *;
+using LayerId = unsigned int;
 
 class Scene : public Framework {
 	friend class Terminal;
 
 private:
 	Scene();
+	Scene(const Scene& rhs) = delete;
 	virtual ~Scene();
 
-	virtual Sceneid getID() const;
-
+	virtual void addLayer(LayerId lid);
+	virtual void delLayer(LayerId lid);
+	virtual void setLayerSize(LayerId lid, size_t row, size_t col);
+	virtual void setLayerAxis(LayerId lid, int y, int x);
 	virtual void setSize(size_t row, size_t col) override;
 	virtual void setAxis(int y, int x) override;
 
@@ -23,12 +29,9 @@ private:
 	virtual void render() override;
 
 private:
-	static constexpr size_t MAX_ROW = 1024;
-	static constexpr size_t MAX_COL = 2048;
-	static constexpr size_t MAX_Y = 5000;
-	static constexpr size_t MAX_X = 5000;
-
-	Sceneid id;
+	WINDOW *win;
+	std::vector<std::string> buffer;
+	std::unordered_map<LayerId, Layer> layers;
 };
 
 #endif
