@@ -7,7 +7,7 @@
 
 #include "Framework.hpp"	// for inheritance
 
-using Prior = unsigned int;
+using Priority = unsigned int;
 
 class Layer : public Framework {
 	friend class Scene;
@@ -18,8 +18,8 @@ private:
 	virtual ~Layer();
 
 	virtual Prior getPriority() const;
-	virtual void setPriority(Prior prior);
 
+	virtual void setPriority(Prior prior);
 	virtual void setSize(size_t row, size_t col) override;
 	virtual void setAxis(int y, int x) override;
 
@@ -28,8 +28,7 @@ private:
 
 private:
 	WINDOW *win;
-	Prior prior;
-
+	Priority prior;
 };
 
 #endif
