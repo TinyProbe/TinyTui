@@ -9,20 +9,20 @@ Scene::~Scene() {
 	delwin(win);
 }
 
-void Scene::addLayer(LayerId lid) {
+void Scene::addLayout(LayoutId lid) {
 	validation(lid, false);
-	layers[lid];
+	layouts[lid];
 }
-void Scene::delLayer(LayerId lid) {
-	layers.erase(validation(lid, true));
+void Scene::delLayout(LayoutId lid) {
+	layouts.erase(validation(lid, true));
 }
-void Scene::setLayerSize(LayerId lid, size_t row, size_t col) {
+void Scene::setLayoutSize(LayoutId lid, size_t row, size_t col) {
 	validation(lid, true)->second.setSize(row, col);
 }
-void Scene::setLayerAxis(LayerId lid, int y, int x) {
+void Scene::setLayoutAxis(LayoutId lid, int y, int x) {
 	validation(lid, true)->second.setAxis(y, x);
 }
-void Scene::setLayerColor(LayerId lid, int fg, int bg) {
+void Scene::setLayoutColor(LayoutId lid, int fg, int bg) {
 	validation(lid, true)->second.setColor(fg, bg);
 }
 
@@ -35,25 +35,28 @@ void Scene::setAxis(int y, int x) {
 }
 void Scene::setColor(int fg, int bg) {
 	Framework::setColor(fg, bg);
+	wattron(win, CLRPR(fg, bg));
 }
 
 void Scene::update() {
-	for (auto& e : layers)
+	for (auto& e : layouts)
 		e.second.update();
 }
 void Scene::render() {
-	std::priority_queue<std::pair<Priority, LayerId>> order;
-	for (auto& e : layers)
-		order.push(std::pair<Priority, LayerId>({ e.second.prior, e.first }));
-	while (order.size()) {
-		std::pair<Priority, LayerId> next = order.top(); order.pop();
-		layers[next.second].render();
-	}
+	for (auto& e : layouts)
+		e.second.render();
+// 	std::priority_queue<std::pair<Priority, LayoutId>> order;
+// 	for (auto& e : layouts)
+// 		order.push(std::pair<Priority, layoutId>({ e.second.prior, e.first }));
+// 	while (order.size()) {
+// 		std::pair<Priority, layoutId> next = order.top(); order.pop();
+// 		layouts[next.second].render();
+// 	}
 }
 
-std::unodered_map<LayerId, Layer>::iterator Scene::validation(LayerId lid, bool exist) {
-	std::unodered_map<LayerId, Layer>::iterator iter = Layers.find(lid);
-	if ((iter != layers.end()) != exist)
-		throw std::runtime_error(exist ? "doesn't exist that layer." : "already exist that layer.");
+std::unodered_map<LayoutId, Layout>::iterator Scene::validation(LayoutId lid, bool exist) {
+	std::unodered_map<LayoutId, Layout>::iterator iter = layouts.find(lid);
+	if ((iter != layouts.end()) != exist)
+		throw std::runtime_error(exist ? "doesn't exist that layout." : "already exist that layout.");
 	return iter;
 }

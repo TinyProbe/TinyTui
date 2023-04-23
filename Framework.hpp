@@ -32,6 +32,4 @@ private:
 	int fg, bg;
 };
 
-extern int __current_key;
-
 #endif

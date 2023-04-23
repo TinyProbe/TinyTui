@@ -19,15 +19,19 @@ public:
 	virtual void setSceneAxis(SceneId sid, int y, int x);
 	virtual void setSceneColor(SceneId sid, int fg, int bg);
 
-	virtual void addLayer(SceneId sid, LayerId lid);
-	virtual void delLayer(LayerId sid, LayerId lid);
-	virtual void setLayerSize(SceneId sid, LayerId lid, size_t row, size_t col);
-	virtual void setLayerAxis(SceneId sid, LayerId lid, int y, int x);
-	virtual void setLayerColor(SceneId sid, LayerId lid, int fg, int bg);
+	virtual void addLayout(SceneId sid, LayoutId lid);
+	virtual void delLayout(SceneId sid, LayoutId lid);
+	virtual void setLayoutSize(SceneId sid, LayoutId lid, size_t row, size_t col);
+	virtual void setLayoutAxis(SceneId sid, LayoutId lid, int y, int x);
+	virtual void setLayoutColor(SceneId sid, LayoutId lid, int fg, int bg);
+
+	virtual int getCurrKey() const;
+	virtual const std::chrono::time_point<std::chrono::steady_clock>& getCurrTime() const;
+	virtual const std::chrono::time_point<std::chrono::steady_clock>& getPrevTime() const;
 
 	virtual void setFocus(SceneId sid);
-	virtual void setFpsLimit(size_t fps);
-	virtual void setRenderFps(bool is_render_fps);
+	virtual void setFpsLimit(size_t fps_limit);
+	virtual void setRenderFps(bool render_fps);
 
 	virtual void run_framework();
 
@@ -36,18 +40,21 @@ private:
 	Terminal(const Terminal& rhs) = delete;
 	virtual ~Terminal();
 
+	virtual int getNextKey();
+
 	static void refreshSize(size_t row, size_t col);
 	static void refreshAxis(int y, int x);
 	static std::unodered_map<SceneId, Scene>::iterator validation(SceneId sid, bool exist);
 
 private:
 	static Terminal *instance;
+	int key;
 
 	std::unordered_map<SceneId, Scene> scenes;
 	SceneId focus;
 	std::queue<std::chrono::time_point<std::chrono::steady_clock>> frame_time;
-	size_t fps;
-	bool is_render_fps;
+	size_t fps_limit;
+	bool render_fps;
 };
 
 #endif

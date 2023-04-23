@@ -6,9 +6,8 @@
 Terminal *Terminal::instance = nullptr;
 
 Terminal& Terminal::getInstance() {
-	if (Terminal::instance == nullptr) {
+	if (Terminal::instance == nullptr)
 		Terminal::instance = new Terminal();
-	}
 	return *Terminal::instance;
 }
 
@@ -35,20 +34,32 @@ void Terminal::setSceneColor(SceneId sid, int fg, int bg) {
 	validation(sid, true)->second.setColor(fg, bg);
 }
 
-void Terminal::addLayer(SceneId sid, LayerId lid) {
-	validation(sid, true)->second.addLayer(lid);
+void Terminal::addlayout(SceneId sid, layoutId lid) {
+	validation(sid, true)->second.addlayout(lid);
 }
-void Terminal::delLayer(SceneId sid, LayerId lid) {
-	validation(sid, true)->second.delLayer(lid);
+void Terminal::dellayout(SceneId sid, layoutId lid) {
+	validation(sid, true)->second.dellayout(lid);
 }
-void Terminal::setLayerSize(SceneId sid, LayerId lid, size_t row, size_t col) {
-	validation(sid, true)->second.setLayerSize(lid, row, col);
+void Terminal::setlayoutSize(SceneId sid, layoutId lid, size_t row, size_t col) {
+	validation(sid, true)->second.setlayoutSize(lid, row, col);
 }
-void Terminal::setLayerAxis(SceneId sid, LayerId lid, int y, int x) {
-	validation(sid, true)->second.setLayerAxis(lid, y, x);
+void Terminal::setlayoutAxis(SceneId sid, layoutId lid, int y, int x) {
+	validation(sid, true)->second.setlayoutAxis(lid, y, x);
 }
-void Terminal::setLayerColor(SceneId sid, LayerId lid, int fg, int bg) {
-	validation(sid, true)->second.setLayerColor(lid, fg, bg);
+void Terminal::setlayoutColor(SceneId sid, layoutId lid, int fg, int bg) {
+	validation(sid, true)->second.setlayoutColor(lid, fg, bg);
+}
+
+int Terminal::getCurrKey() const { return key; }
+const std::chrono::time_point<std::chrono::steady_clock>& Terminal::getCurrTime() const {
+	return (frame_time.size() > 0
+		? frame_time.back()
+		: std::chrono::time_point<std::chrono::steady_clock>());
+}
+const std::chrono::time_point<std::chrono::steady_clock>& Terminal::getPrevTime() const {
+	return (frame_time.size() > 1
+		? --frame_time.back()
+		: std::chrono::time_point<std::chrono::steady_clock>());
 }
 
 void Terminal::setFocus(SceneId sid) {
@@ -57,42 +68,47 @@ void Terminal::setFocus(SceneId sid) {
 	refreshSize(iter->second.getRow(), iter->second.getCol());
 	refreshAxis(iter->second.getY(), iter->second.getX());
 }
-void Terminal::setFpsLimit(size_t fps) {
-	this->fps = fps;
+void Terminal::setFpsLimit(size_t fps_limit) {
+	this->fps_limit = fps_limit;
 }
-void setRenderFps(bool is_render_fps) {
-	this->is_render_fps = is_render_fps;
+void setRenderFps(bool render_fps) {
+	this->render_fps = render_fps;
 }
 
 void Terminal::run_framework() {
-	if (focus == -1)
+	if (focus == ~0)
 		throw std::runtime_error("not focused any scene.");
-	while ((__current_key = getch()) != 'q') {
+	while (true) {
 		std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
-		while (frame_time.size() && std::chrono::duration_cast<milliseconds>(now - frame_time.front()).count() >= 1000)
+		while (frame_time.size() && std::chrono::duration_cast<std::chrono::milliseconds>(now - frame_time.front()).count() >= 1000)
 			frame_time.pop();
-		if (frame_time.size() < fps) {
-			frame_time.push(now);
-			std::unodered_map<SceneId, Scene>::iterator iter = scenes.find(focus);
-			iter->second.update(now); // Scene class update method need remind
-			iter->second.render();
-			if (is_render_fps)
-				mvwprintw(iter->second.win, 0, 0, "%s", to_string(frame_time.size()).c_str());
-		}
+		if (frame_time.size() >= fps)
+			continue;
+		frame_time.push(now);
+		if (getNextKey() == 'q')
+			break;
+		std::unodered_map<SceneId, Scene>::iterator iter = scenes.find(focus);
+		iter->second.update(now);
+		iter->second.render();
+		if (render_fps)
+			mvwprintw(iter->second.win, 0, 0, "%s", to_string(frame_time.size()).c_str());
 	}
 }
 
 Terminal::Terminal() :
 	Framework(),
-	focus(-1),
+	key(),
+	focus(~0),
 	fps(30)
 {
 	initscr();
+	keypad(stdscr, TRUE);
 	timeout(0);
 	curs_set(0);
 	noecho();
 	cbreak();
 	nonl();
+	start_color();
 	for (int i = 0; i < COLOR_MAX; ++i) {
 		for (int j = 0; j < COLOR_MAX; ++j) {
 			init_pair(CLRIX(i, j), i, j);
@@ -100,20 +116,20 @@ Terminal::Terminal() :
 	}
 }
 Terminal::~Terminal() {
-	if (Terminal::instance) {
+	if (Terminal::instance)
 		delete Terminal::instance;
-		Terminal::instance = nullptr;
-	}
 	endwin();
 }
 
-void Terminal::refreshSize(size_t row, size_t col) const {
+int Terminal::getNextKey() { return (key = getch()); }
+
+void Terminal::refreshSize(size_t row, size_t col) {
 	std::string cmd = "printf '\e[8;";
 	cmd += std::to_string(row) + ';';
 	cmd += std::to_string(col) + "t'";
 	system(cmd.c_str());
 }
-void Terminal::refreshAxis(int y, int x) const {
+void Terminal::refreshAxis(int y, int x) {
 	std::string cmd = "printf '\e[3;";
 	cmd += std::to_string(x) + ';';
 	cmd += std::to_string(y) + "t'";
