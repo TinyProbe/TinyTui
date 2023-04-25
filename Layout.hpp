@@ -5,13 +5,13 @@
 
 #include "Framework.hpp"	// for inheritance
 
-class layout : public Framework {
+class Layout : public Framework {
 	friend class Scene;
 
 private:
-	layout();
-	layout(const layout& rhs) = delete;
-	virtual ~layout();
+	Layout();
+	Layout(const Layout& rhs) = delete;
+	virtual ~Layout();
 
 	virtual void setSize(size_t row, size_t col) override;
 	virtual void setAxis(int y, int x) override;
